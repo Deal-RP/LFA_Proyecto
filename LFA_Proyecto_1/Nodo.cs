@@ -9,7 +9,7 @@ namespace LFA_Proyecto_1
     class Nodo
     {
         public string simbolo;
-        public Nodo Hijo1;
-        public Nodo Hijo2;
+        public Nodo HijoIzquierdo;
+        public Nodo HijoDerecho;
     }
 }
