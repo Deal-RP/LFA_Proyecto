@@ -1,0 +1,22 @@
+SETS
+CHARSET = CHR(32)	..CHR(254)
+
+TOKENS
+	TOKEN = DIGITO DIGITO *
+	TOKEN 2='"' CHARSET '"'|''' CHARSET '''
+TOKEN 3= LETRA 	( LETRA | DIGITO )*   { RESERVADAS() } 
+ACTIONS
+RESERVADAS()
+{
+	29 = 'THEN'
+	30 = 'ELSE'
+	31 = 'FOR'
+	32 = 'TO'
+}
+X(
+{
+	29 = 'THEN'
+	32 = 'TO'
+}
+ERROR = 25
+ERROR = 78
