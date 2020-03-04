@@ -503,7 +503,7 @@ namespace LFA_Proyecto_1
 
             if (linea.Length > 0 && linea[0] == '\'')
             {
-                linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                linea = linea.Substring(1);
 
                 pos = 0;
                 while (pos < linea.Length && PerteneceLetra(linea[pos]))
@@ -517,7 +517,7 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
-                    linea = linea.Substring(pos).Trim(new char[2] { '\t', ' ' });
+                    linea = linea.Substring(pos);
                 }
                 if (linea.Length > 0 && linea[0] == '\'')
                 {
