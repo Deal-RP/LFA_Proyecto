@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LFA_Proyecto_1")]
+[assembly: AssemblyTitle("LFA-Proyecto-1")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("HP Inc.")]
-[assembly: AssemblyProduct("LFA_Proyecto_1")]
+[assembly: AssemblyProduct("LFA-Proyecto-1")]
 [assembly: AssemblyCopyright("Copyright © HP Inc. 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("de30fa16-2571-4879-baed-164c745578e3")]
+[assembly: Guid("37edb3db-991f-4988-8815-1a61f8e8b137")]
 
 // Version information for an assembly consists of the following four values:
 //

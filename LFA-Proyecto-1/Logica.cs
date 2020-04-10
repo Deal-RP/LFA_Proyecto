@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Windows.Forms;
+using System.Drawing;
 
 namespace LFA_Proyecto_1
 {
-    class Program
+    class Logica
     {
         //Mantiene el conteo de lineas dentro de cada evaluacion
-        static int contLinea = 1;
+        static int contLinea;
+        public static string ER;
+        public static List<string> Sets;
 
         #region METODOS DE APROBACION
         //Toma cada set recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
-        static bool AprobarSets(string linea, string ER)
+        static string AprobarSets(string linea)
         {
-            var arbol = CreacionArbol(ER);
             var aux = string.Empty;
             var SetsCompletado = false;
 
@@ -37,21 +38,27 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                    return false;
+                    return $"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA";
                 }
+            }
+
+            if (Sets.Contains(aux))
+            {
+                return $"ERROR LINEA: {contLinea} SE REPITIO EL SETS";
+            }
+            else
+            {
+                Sets.Add(aux);
             }
 
             if (aux.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN IDENTIFICADOR");
-                return false;
+                return $"ERROR LINEA: {contLinea} SE ESPERABA UN IDENTIFICADOR";
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA '=' Y DEFINICION");
-                return false;
+                return $"ERROR LINEA: {contLinea} SE ESPERABA '=' Y DEFINICION";
             }
 
             if (linea[0] == '=')
@@ -60,14 +67,12 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                return false;
+                return $"ERROR LINEA: {contLinea} SE ESPERABA UN '='";
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                return false;
+                return $"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION";
             }
 
             var first = true;
@@ -81,14 +86,12 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERA UN +");
-                        return false;
+                        return ($"ERROR LINEA: {contLinea} SE ESPERA UN +");
                     }
 
                     if (linea.Length == 0)
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERA UNA DEFINICION A CONTINUACION DEL +");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} SE ESPERA UNA DEFINICION A CONTINUACION DEL +");
                     }
                 }
                 if (linea.Length > 7 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'' && linea[3] == '.' && linea[4] == '.' && linea[5] == '\'' && PerteneceASCII(linea[6]) && linea[7] == '\'')
@@ -111,8 +114,8 @@ namespace LFA_Proyecto_1
                     }
                     if (pos == 0)
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                        
                     }
                     else
                     {
@@ -124,8 +127,8 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                        
                     }
 
                     if (linea.Length > 5 && linea[0] == '.' && linea[1] == '.' && linea[2] == 'C' && linea[3] == 'H' && linea[4] == 'R' && linea[5] == '(')
@@ -138,8 +141,8 @@ namespace LFA_Proyecto_1
                         }
                         if (pos == 0)
                         {
-                            Console.WriteLine($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                            return false;
+                            return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                            
                         }
                         else
                         {
@@ -151,25 +154,24 @@ namespace LFA_Proyecto_1
                         }
                         else
                         {
-                            Console.WriteLine($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                            return false;
+                            return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                            
                         }
                     }
                     first = false;
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR LINEA: {contLinea} DEFINICION ERRONEA");
-                    return false;
+                    return($"ERROR LINEA: {contLinea} DEFINICION ERRONEA");
+                    
                 }
             }
-            return true;
+            return "Correcto";
         }
 
         //Toma cada token recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
-        static bool AprobarTokens(string linea, string ER)
+        static string AprobarTokens(string linea)
         {
-            var arbol = CreacionArbol(ER);
             var aux = string.Empty;
             var TokensCompletados = false;
 
@@ -181,14 +183,12 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERA LA PALABRA TOKEN");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERA LA PALABRA TOKEN");
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                return false;
+                return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
             }
 
             if (linea[0] == '\t' || linea[0] == ' ')
@@ -197,8 +197,7 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} FALTA ESPACIO ENTRE TOKEN Y NUMERO");
-                return false;
+                return($"ERROR LINEA: {contLinea} FALTA ESPACIO ENTRE TOKEN Y NUMERO");
             }
 
             pos = 0;
@@ -208,8 +207,7 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
             }
             else
             {
@@ -222,29 +220,33 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                return false;
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
             }
+
+
+
 
             var first = true;
             while (linea.Length != 0)
             {
                 if (linea.Length > 0 && linea[0] == '*' && !first)
                 {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
                     linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
                 }
                 else if (linea.Length > 0 && linea[0] == '+' && !first)
                 {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
                     linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
                 }
                 else if (linea.Length > 0 && linea[0] == '?' && !first)
                 {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
                     linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
                 }
                 else if (linea.Length > 0 && linea[0] == '{' && !first)
@@ -256,8 +258,7 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA RESERVADAS()");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} SE ESPERABA RESERVADAS()");
                     }
                     if (linea.Length > 0 && linea[0] == '}')
                     {
@@ -265,16 +266,17 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA {"}"}");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} SE ESPERABA {"}"}");
                     }
                 }
                 else if (linea.Length > 0 && linea[0] == '|' && !first)
                 {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}";
                     linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
 
                     if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
                     {
+                        ER += $"{linea.Substring(0, 3)}.";
                         linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
                     }
                     else if (linea.Length > 1 && PerteneceLetra(linea[0]))
@@ -295,21 +297,34 @@ namespace LFA_Proyecto_1
                                 linea = linea.Trim(new char[2] { '\t', ' ' });
                                 pos++;
                             }
+                            else if (linea[0] == '(' || linea[0] ==  ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
+                            {
+                                TokensCompletados = true;
+                                linea = linea.Trim(new char[2] { '\t', ' ' });
+                            }
                             else
                             {
-                                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                                return false;
+                                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
                             }
+                        }
+                        if (Sets.Contains(aux))
+                        {
+                            ER += $"{aux}.";
+                        }
+                        else
+                        {
+                            return($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                        return false;
+                        return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+                        
                     }
                 }
                 else if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
                 {
+                    ER += $"{linea.Substring(0, 3)}.";
                     linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
                     first = false;
                 }
@@ -332,138 +347,199 @@ namespace LFA_Proyecto_1
                             first = false;
                             pos++;
                         }
+                        else if (linea[0] == '(' || linea[0] == ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
+                        {
+                            TokensCompletados = true;
+                            linea = linea.Trim(new char[2] { '\t', ' ' });
+                        }
                         else
                         {
-                            Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                            return false;
+                            return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+                            
                         }
+                    }
+                    if (Sets.Contains(aux))
+                    {
+                        ER += $"{aux}.";
+                    }
+                    else
+                    {
+                        return($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
+                        
                     }
                 }
                 else if (linea.Length > 0 && linea[0] == '(')
                 {
-                    var posicion = 0;
-                    var cerrarParentesis = false;
-                    var firstParentesis = true;
-                    linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-                    while (posicion < linea.Length && !cerrarParentesis)
+                    var auxParentesis = AprobarParentesis(ref linea);
+                    if (auxParentesis != "")
                     {
-                        if (linea.Length > 0 && linea[0] == ')')
-                        {
-                            if (firstParentesis)
-                            {
-                                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA CONTENIDO DENTRO DEL PARENTESIS");
-                                return false;
-                            }
-                            else
-                            {
-                                cerrarParentesis = true;
-                                linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-                            }
-                        }
-                        else if (linea.Length > 0 && linea[0] == '*' && !firstParentesis)
-                        {
-                            linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-                        }
-                        else if (linea.Length > 0 && linea[0] == '+' && !firstParentesis)
-                        {
-                            linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-                        }
-                        else if (linea.Length > 0 && linea[0] == '?' && !firstParentesis)
-                        {
-                            linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-                        }
-                        else if (linea.Length > 0 && linea[0] == '|' && !firstParentesis)
-                        {
-                            linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
-
-                            if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
-                            {
-                                linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
-                            }
-                            else if (linea.Length > 1 && PerteneceLetra(linea[0]))
-                            {
-                                TokensCompletados = false;
-                                aux = string.Empty;
-                                pos = 0;
-                                while (!TokensCompletados && linea.Length != 0)
-                                {
-                                    if (PerteneceLetra(linea[0]))
-                                    {
-                                        aux += linea[0];
-                                        linea = linea.Substring(1);
-                                    }
-                                    else if (linea[0] == '\t' || linea[0] == ' ' || linea[0] == '(' || linea[0] == ')' || linea[0] == '\'' || linea[0] == '{')
-                                    {
-                                        TokensCompletados = true;
-                                        linea = linea.Trim(new char[2] { '\t', ' ' });
-                                        pos++;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                                        return false;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                                return false;
-                            }
-                        }
-                        else if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
-                        {
-                            linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
-                            firstParentesis = false;
-                        }
-                        else if (linea.Length > 1 && PerteneceLetra(linea[0]))
-                        {
-                            TokensCompletados = false;
-                            aux = string.Empty;
-                            pos = 0;
-                            while (!TokensCompletados && linea.Length != 0)
-                            {
-                                if (PerteneceLetra(linea[0]))
-                                {
-                                    aux += linea[0];
-                                    linea = linea.Substring(1);
-                                }
-                                else if (linea[0] == '\t' || linea[0] == ' ' || linea[0] == ')' || linea[0] == '\'' || linea[0] == '{')
-                                {
-                                    TokensCompletados = true;
-                                    linea = linea.Trim(new char[2] { '\t', ' ' });
-                                    firstParentesis = false;
-                                    pos++;
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                                    return false;
-                                }
-                            }
-                        }
+                        return auxParentesis;
                     }
-                    if (!cerrarParentesis)
-                    {
-                        Console.WriteLine($"ERROR LINEA: {contLinea} FALTA CERRAR PARENTESIS");
-                        return false;
-                    }
-                    first = false;
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                    return false;
+                    return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+                    
                 }
+                first = false;
             }
 
-            return true;
+            return "Correcto";
         }
 
-        //Toma cada action recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
-        static bool AprobarActions(string linea, string ER)
+        static string AprobarParentesis(ref string linea)
         {
-            var arbol = CreacionArbol(ER);
+            var posicion = 0;
+            var TokensCompletados = false;
+            var cerrarParentesis = false;
+            var firstParentesis = true;
+            ER += $"{linea[0]}";
+            linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+            while (posicion < linea.Length && !cerrarParentesis)
+            {
+                if (linea.Length > 0 && linea[0] == '(')
+                {
+                    var auxParentesis = AprobarParentesis(ref linea);
+                    if (auxParentesis != "")
+                    {
+                        return auxParentesis;
+                    }
+                }
+                else if (linea.Length > 0 && linea[0] == ')')
+                {
+                    if (firstParentesis)
+                    {
+                        return ($"ERROR LINEA: {contLinea} SE ESPERABA CONTENIDO DENTRO DEL PARENTESIS");
+                    }
+                    else
+                    {
+                        cerrarParentesis = true;
+                        ER = $"{ER.TrimEnd('.')}{linea[0]}.";
+                        linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                    }
+                }
+                else if (linea.Length > 0 && linea[0] == '*' && !firstParentesis)
+                {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
+                    linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                }
+                else if (linea.Length > 0 && linea[0] == '+' && !firstParentesis)
+                {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
+                    linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                }
+                else if (linea.Length > 0 && linea[0] == '?' && !firstParentesis)
+                {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}.";
+                    linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                }
+                else if (linea.Length > 0 && linea[0] == '|' && !firstParentesis)
+                {
+                    ER = $"{ER.TrimEnd('.')}{linea[0]}";
+                    linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+
+                    if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
+                    {
+                        ER += $"{linea.Substring(0, 3)}.";
+                        linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
+                    }
+                    else if (linea.Length > 1 && PerteneceLetra(linea[0]))
+                    {
+                        TokensCompletados = false;
+                        var aux = string.Empty;
+                        while (!TokensCompletados && linea.Length != 0)
+                        {
+                            if (PerteneceLetra(linea[0]))
+                            {
+                                aux += linea[0];
+                                linea = linea.Substring(1);
+                            }
+                            else if (linea[0] == '\t' || linea[0] == ' ' || linea[0] == '(' || linea[0] == ')' || linea[0] == '\'' || linea[0] == '{')
+                            {
+                                TokensCompletados = true;
+                                linea = linea.Trim(new char[2] { '\t', ' ' });
+                            }
+                            else if (linea[0] == '(' || linea[0] == ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
+                            {
+                                TokensCompletados = true;
+                                linea = linea.Trim(new char[2] { '\t', ' ' });
+                            }
+                            else
+                            {
+                                return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+                            }
+                        }
+                        if (Sets.Contains(aux))
+                        {
+                            ER += $"{aux}.";
+                        }
+                        else
+                        {
+                            return ($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
+
+                        }
+                    }
+                    else
+                    {
+                        return ($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+
+                    }
+                }
+                else if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
+                {
+                    ER += $"{linea.Substring(0, 3)}.";
+                    linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
+                    firstParentesis = false;
+                }
+                else if (linea.Length > 1 && PerteneceLetra(linea[0]))
+                {
+                    TokensCompletados = false;
+                    var aux = string.Empty;
+                    while (!TokensCompletados && linea.Length != 0)
+                    {
+                        if (PerteneceLetra(linea[0]))
+                        {
+                            aux += linea[0];
+                            linea = linea.Substring(1);
+                        }
+                        else if (linea[0] == '\t' || linea[0] == ' ' || linea[0] == ')' || linea[0] == '\'' || linea[0] == '{')
+                        {
+                            TokensCompletados = true;
+                            linea = linea.Trim(new char[2] { '\t', ' ' });
+                            firstParentesis = false;
+                        }
+                        else if (linea[0] == '(' || linea[0] == ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
+                        {
+                            TokensCompletados = true;
+                            linea = linea.Trim(new char[2] { '\t', ' ' });
+                            firstParentesis = false;
+                        }
+                        else
+                        {
+                            return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+                        }
+                    }
+                    if (Sets.Contains(aux))
+                    {
+                        ER += $"{aux}.";
+                    }
+                    else
+                    {
+                        return ($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
+
+                    }
+                }
+            }
+            if (!cerrarParentesis)
+            {
+                return ($"ERROR LINEA: {contLinea} FALTA CERRAR PARENTESIS");
+            }
+            return "";
+        } 
+
+        //Toma cada action recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
+        static string AprobarActions(string linea)
+        {
             var pos = 0;
             while (pos < linea.Length && PerteneceDigito(linea[pos]))
             {
@@ -471,8 +547,8 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
+                
             }
             else
             {
@@ -481,8 +557,8 @@ namespace LFA_Proyecto_1
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} FALTA SIGNO '=' Y DEFINICION");
-                return false;
+                return($"ERROR LINEA: {contLinea} FALTA SIGNO '=' Y DEFINICION");
+                
             }
 
             if (linea[0] == '=')
@@ -491,14 +567,14 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
+                
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
+                
             }
 
             if (linea.Length > 0 && linea[0] == '\'')
@@ -512,8 +588,8 @@ namespace LFA_Proyecto_1
                 }
                 if (pos == 0)
                 {
-                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                    return false;
+                    return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+                    
                 }
                 else
                 {
@@ -525,37 +601,36 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA '");
-                    return false;
+                    return($"ERROR LINEA: {contLinea} SE ESPERABA '");
+                    
                 }
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA '");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA '");
+                
             }
 
-            return true;
+            return "Correcto";
         }
 
         //Toma cada errors recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
-        static bool AprobarErrors(string linea, string ER)
+        static string AprobarErrors(string linea)
         {
-            var arbol = CreacionArbol(ER);
             if (linea[0] == '=')
             {
                 linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
             }
             else
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
+                
             }
 
             if (linea.Length == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
+                
             }
 
             var pos = 0;
@@ -565,8 +640,8 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
-                return false;
+                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
+                
             }
             else
             {
@@ -574,60 +649,67 @@ namespace LFA_Proyecto_1
             }
             if (linea.Length != 0)
             {
-                Console.WriteLine($"ERROR LINEA: {contLinea} CARACTER INGRESADO NO ES DIGITO");
-                return false;
+                return($"ERROR LINEA: {contLinea} CARACTER INGRESADO NO ES DIGITO");
+                
             }
 
-            return true;
+            return "Correcto";
         }
 
         #endregion
 
         #region MANEJO DE ARBOL DE EXPRESIONES
         //Informacion para diferenciar entre terminales y no terminales
-        static List<string> Terminales = new List<string>() {"a", "b", "c", "d", "e", "f", "\\#" };
+        public static List<string> Terminales = new List<string>();
 
         //Metodo para crear el arbol de expresion
-        public static Nodo CreacionArbol(string linea)
+        public static Nodo CreacionArbol()
         {
             var S = new Stack<Nodo>();
             var T = new Stack<string>();
-            //var Op = new List<char>() { '+', '*', '.', '?' };
             var Jerarquia = new Dictionary<string, int>();
             Jerarquia.Add("*", 1);
             Jerarquia.Add("+", 1);
             Jerarquia.Add("?", 1);
-            Jerarquia.Add(".", 2);
-            Jerarquia.Add("|", 3);
+            Jerarquia.Add("|", 2);
+            Jerarquia.Add(".", 3);
 
-            /*
-             * a = [A...Z]
-             * b = " "
-             * c = [A...Z] y [0...9]
-             * d = [0..9]
-             * e = \n
-             * f = \t
-             */
-
-            var St = new List<string>() { "S", "E", "T", "S", "C", "H", "R", "a", "b", "c", "d", "e", "f", "=", "'", "\\.", "\\(", "\\)", "\\+", "\\#" };
+            var Token = string.Empty;
 
             var pos = 0;
-            while (pos < linea.Length)
+            while (pos < ER.Length)
             {
-                var Token = linea[pos].ToString();
-                if (Token == "\\")
+                if (PerteneceLetra(ER[pos]))
                 {
-                    pos++;
-                    Token += linea[pos].ToString();
+                    Token += ER[pos];
+                    if (Sets.Contains(Token) && ! Terminales.Contains(Token))
+                    {
+                        Terminales.Add(Token);
+                    }
+                }
+                else if (ER[pos] == '\'')
+                {
+                    Token = $"{ER[pos]}{ER[pos + 1]}{ER[pos + 2]}";
+                    if (!Terminales.Contains(Token))
+                    {
+                        Terminales.Add(Token);
+                    }
+                    pos += 2;
+                }
+                else
+                {
+                    Token = ER[pos].ToString();
                 }
 
-                if (St.Contains(Token.ToString()))
+                if (Terminales.Contains(Token) || Token == "#")
                 {
                     S.Push(new Nodo() { simbolo = Token });
+                    Token = string.Empty;
                 }
                 else if (Token == "(")
                 {
                     T.Push(Token);
+                    Token = string.Empty;
                 }
                 else if (Token == ")")
                 {
@@ -643,35 +725,37 @@ namespace LFA_Proyecto_1
                         temp.HijoIzquierdo = S.Pop();
                         S.Push(temp);
                     }
+                    Token = string.Empty;
                     T.Pop();
                 }
                 else if (Jerarquia.ContainsKey(Token))
                 {
-                    //Revisar que es unario
-                    //Token == '*' || Token == '+' || Token == '?'
                     if (Jerarquia[Token] == 1)
                     {
                         var nodo = new Nodo { simbolo = Token };
                         nodo.HijoIzquierdo = S.Pop();
                         S.Push(nodo);
                     }
-                    else if (T.Count != 0 && T.Peek() != "(" && Jerarquia[Token] <= Jerarquia[T.Peek()])
+                    else if (T.Count != 0)
                     {
-                        if (S.Count < 2)
+                        while (T.Peek() != "(" && Jerarquia[Token] <= Jerarquia[T.Peek()])
                         {
-                            //ERROR
+                            if (S.Count < 2)
+                            {
+                                //ERROR
+                            }
+                            var temp = new Nodo();
+                            temp.simbolo = T.Pop();
+                            temp.HijoDerecho = S.Pop();
+                            temp.HijoIzquierdo = S.Pop();
+                            S.Push(temp);
                         }
-                        var temp = new Nodo();
-                        temp.simbolo = T.Pop();
-                        temp.HijoDerecho = S.Pop();
-                        temp.HijoIzquierdo = S.Pop();
-                        S.Push(temp);
                     }
-                    //Token == '|' || Token == '.'
                     if (Jerarquia[Token] == 2 || Jerarquia[Token] == 3)
                     {
                         T.Push(Token);
                     }
+                    Token = string.Empty;
                 }
                 pos++;
             }
@@ -689,13 +773,188 @@ namespace LFA_Proyecto_1
             }
             return S.Pop();
         }
+
+        public static int altura;
+
+        public static int MostrarArbol(Nodo raiz, Graphics grafo, Font fuente, Brush relleno, Brush rellenoFuente, Pen lapiz, Brush encuentro)
+        {
+            altura = 0;
+            int x = 400;
+            int y = 0;
+
+            raiz.PosNodo(ref x, y);
+            raiz.MostrarRamas(grafo, lapiz);
+            raiz.MostrarNodo(grafo, fuente, relleno, rellenoFuente, lapiz, encuentro);
+            return x;
+        }
+
+        public static void Colorear(Nodo raiz, Graphics grafo, Font fuente, Brush relleno, Brush rellenoFuente, Pen lapiz, Brush encuentro)
+        {
+            if (raiz != null)
+            {
+                Colorear(raiz.HijoIzquierdo, grafo, fuente, relleno, rellenoFuente, lapiz, encuentro);
+                raiz.colorear(grafo, fuente, relleno, rellenoFuente, lapiz);
+                Colorear(raiz.HijoDerecho, grafo, fuente, relleno, rellenoFuente, lapiz, encuentro);
+            }
+            
+        }
+
+        public static int cont;
+        public static Dictionary<int, List<int>> Follows;
+        public static List<string> listTerminales;
+
+        public static void TablaFLN(Nodo Actual, DataGridView Tabla)
+        {
+            if (Actual != null)
+            {
+                TablaFLN(Actual.HijoIzquierdo, Tabla);
+                TablaFLN(Actual.HijoDerecho, Tabla);
+                Tabla.Rows.Add(Actual.FuncionesFLN());
+            }
+        }
+
+        public static void TablaF(DataGridView Tabla)
+        {
+            var sortList = Follows.Keys.ToList();
+            sortList.Sort();
+            var dic = new Dictionary<int, List<int>>();
+
+            foreach (var key in sortList)
+            {
+                dic.Add(key, Follows[key]);
+            }
+
+            Follows = dic;
+            Follows.Add(cont - 1, new List<int>());
+
+            foreach (var item in Follows)
+            {
+                var aux = string.Empty;
+
+                foreach (var itemList in Follows[item.Key])
+                {
+                    aux += $"{itemList.ToString()},";
+                }
+                Tabla.Rows.Add(item.Key, aux.TrimEnd(','));
+            }
+        }
+
+        public static void TablaEstados(Nodo Raiz, DataGridView Tabla)
+        {
+            var estados = new Dictionary<List<int>, Dictionary<string, List<int>>>();
+            var estadoActual = Raiz.First;
+            var ordenEstados = new Queue<string>();
+            var completado = false;
+
+            while (!completado)
+            {
+                var dic = new Dictionary<string, List<int>>();
+
+                for (int i = 0; i < Terminales.Count(); i++)
+                {
+                    var trans = new List<int>();
+                    foreach (var estado in estadoActual)
+                    {
+                        if (listTerminales[estado - 1] == Terminales[i])
+                        {
+                            foreach (var follow in Follows[estado])
+                            {
+                                if (!trans.Contains(follow))
+                                {
+                                    trans.Add(follow);
+                                }
+                            }
+                        }
+                    }
+                    trans.Sort();
+                    dic.Add(Terminales[i], trans);
+                }   
+
+                estados.Add(estadoActual, dic);
+
+                foreach (var item in dic.Values)
+                {
+                    var auxDic = string.Empty;
+                    foreach (var key in item)
+                    {
+                        auxDic += $"{key},";
+                    }
+                    auxDic = auxDic.TrimEnd(',');
+
+                    var misEstados = new List<string>();
+
+                    foreach (var estado in estados)
+                    {
+                        var auxEstado = string.Empty;
+
+                        foreach (var key in estado.Key)
+                        {
+                            auxEstado += $"{key},";
+                        }
+                        misEstados.Add(auxEstado.TrimEnd(','));
+                    }
+
+                    if (auxDic != "" && !misEstados.Contains(auxDic) && !ordenEstados.Contains(auxDic))
+                    {
+                        ordenEstados.Enqueue(auxDic);
+                    }
+                }
+
+                if (ordenEstados.Count() != 0)
+                {
+                    var aux = ordenEstados.Dequeue().Split(',');
+                    var nuevo = new List<int>();
+                    foreach (var item in aux)
+                    {
+                        nuevo.Add(Convert.ToInt32(item));
+                    }
+                    estadoActual = nuevo;
+                }
+                else
+                {
+                    completado = true;
+                }
+            }
+
+            var first = false;
+
+            foreach (var estado in estados)
+            {
+                var fila = new List<string>();
+                var aux = string.Empty;
+
+                foreach (var item in estado.Key)
+                {
+                    aux += $"{item},";
+                }
+                fila.Add(aux.TrimEnd(','));
+
+                foreach (var item in estado.Value)
+                {
+                    if (!first)
+                    {
+                        Tabla.Columns.Add(item.Key.ToLower(), item.Key);
+                    }
+
+                    var aux1 = string.Empty;
+                    foreach (var miniEstado in item.Value)
+                    {
+                        aux1 += $"{miniEstado},";
+                    }
+                    fila.Add(aux1.TrimEnd(','));
+                }
+
+                first = true;
+                Tabla.Rows.Add(fila.ToArray());
+            }
+        }
         #endregion
 
         #region VALIDACIONES DE CARACTERES
         //Metodo verifica que este entre el rango de caracteres permitidos
-        static bool PerteneceASCII (char linea)
+        static bool PerteneceASCII(char linea)
         {
-            if (linea > 31 && linea < 256)
+            if (linea > 0 && linea < 256)
             {
                 return true;
             }
@@ -723,15 +982,18 @@ namespace LFA_Proyecto_1
         }
         #endregion
 
-        static void Main(string[] args)
+        #region Lectura
+        public static string Lectura(Stream archivo)
         {
             //Booleana central que maneja cuando parar el analisis del txt
+            contLinea = 0;
+            ER = string.Empty;
+            Terminales = new List<string>();
+            Sets = new List<string>();
             var Correcto = true;
             try
             {
-                var path = Console.ReadLine().Trim('"');
-
-                using (var sr = new StreamReader(path))
+                using (var sr = new StreamReader(archivo))
                 {
                     #region VARIABLES
                     //Variables de manejo de errores
@@ -746,10 +1008,11 @@ namespace LFA_Proyecto_1
                     #endregion
 
                     #region INICIO
-                    while (Correcto && continuar)
+                    while (continuar)
                     {
                         if ((linea = sr.ReadLine()) != null)
                         {
+                            contLinea++;
                             linea = linea.Trim(new char[2] { '\t', ' ' });
                             if (linea == "SETS")
                             {
@@ -763,15 +1026,12 @@ namespace LFA_Proyecto_1
                             }
                             else if (linea != "")
                             {
-                                Correcto = false;
-                                Console.WriteLine($"ERROR EN LINEA: {contLinea} NO EMPIEZA CON SETS O TOKENS");
+                                return $"ERROR EN LINEA: {contLinea} NO EMPIEZA CON SETS O TOKENS";
                             }
-                            contLinea++;
                         }
                         else
                         {
-                            Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
-                            Correcto = false;
+                            return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                         }
                     }
                     continuar = true;
@@ -782,6 +1042,7 @@ namespace LFA_Proyecto_1
                     {
                         if ((linea = sr.ReadLine()) != null)
                         {
+                            contLinea++;
                             linea = linea.Trim(new char[2] { '\t', ' ' });
                             if (linea == "TOKENS")
                             {
@@ -789,20 +1050,20 @@ namespace LFA_Proyecto_1
                                 continuar = false;
                             }
                             else if (linea == "") { }
-                            else if (!AprobarSets(linea, "a.b.c.(d.c)*.\\#"))
+                            else if (AprobarSets(linea) != "Correcto")
                             {
                                 Correcto = false;
+                                return AprobarSets(linea);
                             }
                             else
                             {
                                 conteo++;
                             }
-                            contLinea++;
                         }
                         else
                         {
-                            Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                             Correcto = false;
+                            return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                         }
                     }
 
@@ -810,8 +1071,8 @@ namespace LFA_Proyecto_1
 
                     if (conteo == 0 && ContieneSets && Correcto)
                     {
-                        Console.WriteLine($"ERROR EN LINEA: {contLinea} DEBE DE IR UN SET");
                         Correcto = false;
+                        return $"ERROR EN LINEA: {contLinea} DEBE DE IR UN SET";
                     }
                     else
                     {
@@ -824,6 +1085,7 @@ namespace LFA_Proyecto_1
                     {
                         if ((linea = sr.ReadLine()) != null)
                         {
+                            contLinea++;
                             linea = linea.Trim(new char[2] { '\t', ' ' });
                             if (linea == "ACTIONS")
                             {
@@ -831,31 +1093,33 @@ namespace LFA_Proyecto_1
                                 continuar = false;
                             }
                             else if (linea == "") { }
-                            else if (!AprobarTokens(linea, "a.b.c+.d.e*.\\#"))
+                            else if (AprobarTokens(linea) != "Correcto")
                             {
                                 Correcto = false;
+                                return AprobarTokens(linea);
                             }
-                            else if (AprobarTokens(linea, "a.b.c+.d.e*.\\#"))
+                            else
                             {
+                                ER = $"{ER.TrimEnd('.')}|";
                                 conteo++;
                             }
-                            contLinea++;
                         }
                         else
                         {
-                            Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                             Correcto = false;
+                            return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                         }
                     }
 
                     continuar = true;
                     if (conteo == 0 && ContieneTokens && Correcto)
                     {
-                        Console.WriteLine($"ERROR EN LINEA: {contLinea} DEBE DE IR UN TOKEN");
                         Correcto = false;
+                        return $"ERROR EN LINEA: {contLinea} DEBE DE IR UN TOKEN";
                     }
                     else
                     {
+                        ER = $"({ER.TrimEnd('|')}).#";
                         conteo = 0;
                     }
 
@@ -867,6 +1131,7 @@ namespace LFA_Proyecto_1
                     {
                         if ((linea = sr.ReadLine()) != null)
                         {
+                            contLinea++;
                             linea = linea.Trim(new char[2] { '\t', ' ' });
                             if (linea == "RESERVADAS()")
                             {
@@ -874,6 +1139,7 @@ namespace LFA_Proyecto_1
                                 {
                                     if ((linea = sr.ReadLine()) != null)
                                     {
+                                        contLinea++;
                                         linea = linea.Trim(new char[2] { '\t', ' ' });
                                         if (linea == "{")
                                         {
@@ -881,15 +1147,14 @@ namespace LFA_Proyecto_1
                                         }
                                         else if (linea != "")
                                         {
-                                            Console.WriteLine($"ERROR EN LINEA: {contLinea} SE ESPERABA {"{"}");
                                             Correcto = false;
+                                            return $"ERROR EN LINEA: {contLinea} SE ESPERABA {"{"}";
                                         }
-                                        contLinea++;
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                                         Correcto = false;
+                                        return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                                     }
                                 }
                                 continuar = true;
@@ -898,26 +1163,27 @@ namespace LFA_Proyecto_1
                                 {
                                     if ((linea = sr.ReadLine()) != null)
                                     {
+                                        contLinea++;
                                         linea = linea.Trim(new char[2] { '\t', ' ' });
                                         if (linea == "}")
                                         {
                                             continuar = false;
                                         }
                                         else if (linea == "") { }
-                                        else if (!AprobarActions(linea, "a.b.c+.d.\\#"))
+                                        else if (AprobarActions(linea) != "Correcto")
                                         {
                                             Correcto = false;
+                                            return AprobarActions(linea);
                                         }
-                                        else if (AprobarActions(linea, "a.b.c+.d.\\#"))
+                                        else if (AprobarActions(linea) == "Correcto")
                                         {
                                             conteo++;
                                         }
-                                        contLinea++;
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                                         Correcto = false;
+                                        return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                                     }
                                 }
                                 continuar = true;
@@ -937,8 +1203,8 @@ namespace LFA_Proyecto_1
                                 }
                                 if (pos == 0)
                                 {
-                                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN IDENTIFICADOR");
                                     Correcto = false;
+                                    return $"ERROR LINEA: {contLinea} SE ESPERABA UN IDENTIFICADOR";
                                 }
                                 else
                                 {
@@ -951,14 +1217,15 @@ namespace LFA_Proyecto_1
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"ERROR LINEA: {contLinea} SE ESPERABA UN ()");
                                     Correcto = false;
+                                    return $"ERROR LINEA: {contLinea} SE ESPERABA UN ()";
                                 }
 
                                 while (Correcto && continuar)
                                 {
                                     if ((linea = sr.ReadLine()) != null)
                                     {
+                                        contLinea++;
                                         linea = linea.Trim(new char[2] { '\t', ' ' });
                                         if (linea == "{")
                                         {
@@ -966,15 +1233,14 @@ namespace LFA_Proyecto_1
                                         }
                                         else if (linea != "")
                                         {
-                                            Console.WriteLine($"ERROR EN LINEA: {contLinea} SE ESPERABA {"{"}");
                                             Correcto = false;
+                                            return $"ERROR EN LINEA: {contLinea} SE ESPERABA {"{"}";
                                         }
-                                        contLinea++;
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                                         Correcto = false;
+                                        return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                                     }
                                 }
                                 continuar = true;
@@ -983,26 +1249,27 @@ namespace LFA_Proyecto_1
                                 {
                                     if ((linea = sr.ReadLine()) != null)
                                     {
+                                        contLinea++;
                                         linea = linea.Trim(new char[2] { '\t', ' ' });
                                         if (linea == "}")
                                         {
                                             continuar = false;
                                         }
                                         else if (linea == "") { }
-                                        else if (!AprobarActions(linea, "a.b.c+.d.\\#"))
+                                        else if (AprobarActions(linea) != "Correcto")
                                         {
                                             Correcto = false;
+                                            return AprobarActions(linea);
                                         }
-                                        else if (AprobarActions(linea, "a.b.c+.d.\\#"))
+                                        else if (AprobarActions(linea) == "Correcto")
                                         {
                                             conteo++;
                                         }
-                                        contLinea++;
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                                         Correcto = false;
+                                        return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                                     }
                                 }
                                 continuar = true;
@@ -1010,15 +1277,14 @@ namespace LFA_Proyecto_1
                             }
                             else if (linea != "")
                             {
-                                Console.WriteLine($"ERROR EN LINEA: {contLinea} SE ESPERABA SE ESPERABA FUNCIONES");
                                 Correcto = false;
+                                return $"ERROR EN LINEA: {contLinea} SE ESPERABA SE ESPERABA FUNCIONES";
                             }
-                            contLinea++;
                         }
                         else
                         {
-                            Console.WriteLine($"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO");
                             Correcto = false;
+                            return $"ERROR EN LINEA: {contLinea} ARCHIVO INCOMPLETO";
                         }
 
                     }
@@ -1027,14 +1293,14 @@ namespace LFA_Proyecto_1
 
                     if (Correcto && !contieneReservadas)
                     {
-                        Console.WriteLine($"ERROR EN LINEA: {contLinea} DEBE DE IR RESERVADAS()");
                         Correcto = false;
+                        return $"ERROR EN LINEA: {contLinea} DEBE DE IR RESERVADAS()";
                     }
 
                     if (conteo == 0 && ContieneActions && Correcto)
                     {
-                        Console.WriteLine($"ERROR EN LINEA: {contLinea} DEBE DE IR UN ACTION");
                         Correcto = false;
+                        return $"ERROR EN LINEA: {contLinea} DEBE DE IR UN ACTION";
                     }
                     else
                     {
@@ -1046,15 +1312,15 @@ namespace LFA_Proyecto_1
                     if (linea != null && linea.Length > 4 && linea.Substring(0, 5) == "ERROR" && Correcto && ContieneErrors)
                     {
                         linea = linea.Substring(5).Trim(new char[2] { '\t', ' ' });
-                        var aprueba = AprobarErrors(linea, "a.b.c+.\\#");
-                        if (aprueba)
+                        var aprueba = AprobarErrors(linea);
+                        if (aprueba == "Correcto")
                         {
                             conteo++;
                         }
                         else
                         {
                             Correcto = false;
-                            Console.WriteLine($"ERROR EN LINEA: {contLinea} SE ESPERABA ERRORS");
+                            return aprueba;
                         }
                     }
 
@@ -1062,26 +1328,27 @@ namespace LFA_Proyecto_1
                     {
                         if ((linea = sr.ReadLine()) != null)
                         {
+                            contLinea++;
                             linea = linea.Trim(new char[2] { '\t', ' ' });
                             if (linea.Length > 4 && linea.Substring(0, 5) == "ERROR")
                             {
                                 linea = linea.Substring(5).Trim(new char[2] { '\t', ' ' });
-                                var aprueba = AprobarErrors(linea, "a.b.c+.\\#");
-                                if (aprueba)
+                                var aprueba = AprobarErrors(linea);
+                                if (aprueba == "Correcto")
                                 {
                                     conteo++;
                                 }
                                 else
                                 {
                                     Correcto = false;
+                                    return aprueba;
                                 }
                             }
                             else if (linea != "")
                             {
-                                Console.WriteLine($"ERROR EN LINEA: {contLinea} SE ESPERABA ERRORS");
                                 Correcto = false;
+                                return $"ERROR EN LINEA: {contLinea} SE ESPERABA ERRORS";
                             }
-                            contLinea++;
                         }
                         else
                         {
@@ -1091,24 +1358,19 @@ namespace LFA_Proyecto_1
 
                     if (conteo == 0 && Correcto)
                     {
-                        Console.WriteLine($"ERROR EN LINEA: {contLinea} DEBE DE IR UN ERROR");
                         Correcto = false;
+                        return $"ERROR EN LINEA: {contLinea} DEBE DE IR UN ERROR";
                     }
                     #endregion
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                return e.Message;
             }
-            
-            //Si todo se ha cumplido regresa el mensaje de formato correcto
-            if (Correcto)
-            {
-                Console.WriteLine($"FORMATO CORRECTO");
-            } 
 
-            Console.ReadKey();
+            return "FORMATO CORRECTO";
         }
+        #endregion
     }
 }
