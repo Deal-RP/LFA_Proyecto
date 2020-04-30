@@ -13,6 +13,9 @@ namespace LFA_Proyecto_1
         static int contLinea;
         public static string ER;
         public static List<string> Sets;
+        public static Dictionary<string, string> auxSets;
+        public static List<string> estadosTransportar;
+        public static Dictionary<string, int> actionsTransportar;
 
         #region METODOS DE APROBACION
         //Toma cada set recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
@@ -20,6 +23,7 @@ namespace LFA_Proyecto_1
         {
             var aux = string.Empty;
             var SetsCompletado = false;
+            var set = string.Empty;
 
             var pos = 0;
 
@@ -75,13 +79,16 @@ namespace LFA_Proyecto_1
                 return $"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION";
             }
 
+
             var first = true;
             while (linea.Length != 0)
             {
                 if (!first)
                 {
-                    if (linea.Length > 1 && linea[0] == '+')
+                    if (linea.Length > 1 && linea.Trim(new char[2] { '\t', ' ' })[0] == '+')
                     {
+                        linea = linea.Trim(new char[2] { '\t', ' ' });
+                        set += linea.Substring(0, 1);
                         linea = linea.Substring(1);
                     }
                     else
@@ -96,11 +103,13 @@ namespace LFA_Proyecto_1
                 }
                 if (linea.Length > 7 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'' && linea[3] == '.' && linea[4] == '.' && linea[5] == '\'' && PerteneceASCII(linea[6]) && linea[7] == '\'')
                 {
+                    set += $"{Convert.ToString((int)linea[1])}.{Convert.ToString((int)linea[6])}";
                     linea = linea.Substring(8);
                     first = false;
                 }
                 else if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
                 {
+                    set += Convert.ToString((int)linea[1]);
                     linea = linea.Substring(3);
                     first = false;
                 }
@@ -115,10 +124,10 @@ namespace LFA_Proyecto_1
                     if (pos == 0)
                     {
                         return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                        
                     }
                     else
                     {
+                        set += linea.Substring(0, pos);
                         linea = linea.Substring(pos);
                     }
                     if (linea.Length != 0 && linea[0] == ')')
@@ -142,10 +151,10 @@ namespace LFA_Proyecto_1
                         if (pos == 0)
                         {
                             return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                            
                         }
                         else
                         {
+                            set += $".{linea.Substring(0, pos)}";
                             linea = linea.Substring(pos);
                         }
                         if (linea.Length != 0 && linea[0] == ')')
@@ -155,7 +164,6 @@ namespace LFA_Proyecto_1
                         else
                         {
                             return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                            
                         }
                     }
                     first = false;
@@ -166,6 +174,7 @@ namespace LFA_Proyecto_1
                     
                 }
             }
+            auxSets.Add(aux, set);
             return "Correcto";
         }
 
@@ -540,6 +549,7 @@ namespace LFA_Proyecto_1
         //Toma cada action recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
         static string AprobarActions(string linea)
         {
+            var aux = string.Empty;
             var pos = 0;
             while (pos < linea.Length && PerteneceDigito(linea[pos]))
             {
@@ -552,6 +562,7 @@ namespace LFA_Proyecto_1
             }
             else
             {
+                aux = linea.Substring(0, pos);
                 linea = linea.Substring(pos).Trim(new char[2] { '\t', ' ' });
             }
 
@@ -593,6 +604,10 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
+                    if (!actionsTransportar.ContainsKey(linea.Substring(0, pos)))
+                    {
+                        actionsTransportar.Add(linea.Substring(0, pos), Convert.ToInt32(aux));
+                    }
                     linea = linea.Substring(pos);
                 }
                 if (linea.Length > 0 && linea[0] == '\'')
@@ -839,12 +854,15 @@ namespace LFA_Proyecto_1
             }
         }
 
+        public static Dictionary<List<int>, Dictionary<string, List<int>>> estados;
+
         public static void TablaEstados(Nodo Raiz, DataGridView Tabla)
         {
-            var estados = new Dictionary<List<int>, Dictionary<string, List<int>>>();
+            estados = new Dictionary<List<int>, Dictionary<string, List<int>>>();
             var estadoActual = Raiz.First;
             var ordenEstados = new Queue<string>();
             var completado = false;
+            Generar.aprobacion = new List<int>();
 
             while (!completado)
             {
@@ -917,6 +935,7 @@ namespace LFA_Proyecto_1
             }
 
             var first = false;
+            var cont = 0;
 
             foreach (var estado in estados)
             {
@@ -925,9 +944,14 @@ namespace LFA_Proyecto_1
 
                 foreach (var item in estado.Key)
                 {
+                    if (!Generar.aprobacion.Contains(cont) && item == listTerminales.Count)
+                    {
+                        Generar.aprobacion.Add(cont);
+                    }
                     aux += $"{item},";
                 }
                 fila.Add(aux.TrimEnd(','));
+                estadosTransportar.Add(aux.TrimEnd(','));
 
                 foreach (var item in estado.Value)
                 {
@@ -946,6 +970,7 @@ namespace LFA_Proyecto_1
 
                 first = true;
                 Tabla.Rows.Add(fila.ToArray());
+                cont++;
             }
         }
         #endregion
@@ -990,6 +1015,10 @@ namespace LFA_Proyecto_1
             ER = string.Empty;
             Terminales = new List<string>();
             Sets = new List<string>();
+            auxSets = new Dictionary<string, string>();
+            estadosTransportar = new List<string>();
+            actionsTransportar = new Dictionary<string, int>();
+
             var Correcto = true;
             try
             {
@@ -1050,14 +1079,18 @@ namespace LFA_Proyecto_1
                                 continuar = false;
                             }
                             else if (linea == "") { }
-                            else if (AprobarSets(linea) != "Correcto")
-                            {
-                                Correcto = false;
-                                return AprobarSets(linea);
-                            }
                             else
                             {
-                                conteo++;
+                                var aux = AprobarSets(linea);
+                                if (aux != "Correcto")
+                                {
+                                    Correcto = false;
+                                    return aux;
+                                }
+                                else
+                                {
+                                    conteo++;
+                                }
                             }
                         }
                         else

@@ -72,7 +72,6 @@ namespace LFA_Proyecto_1
                         TablaS.Width = 500;
                         TablaS.Height = 300;
                         TablaS.ScrollBars = ScrollBars.Both;
-                        //TablaS.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                         panel1.Controls.Add(TablaS);
 
                         //Gestion de Tabla(First, Last y Nullable)
@@ -83,6 +82,8 @@ namespace LFA_Proyecto_1
                         Logica.TablaF(TablaF);
                         Logica.TablaEstados(Arbol_ER, TablaS);
                         #endregion
+
+                        Generar.CrearPrograma();
                     }
                     else
                     {
