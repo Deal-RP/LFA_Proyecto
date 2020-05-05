@@ -34,6 +34,7 @@
             this.lResultado = new System.Windows.Forms.Label();
             this.Btn_subir = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.BTN_Generar = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // TB_Ruta
@@ -88,12 +89,24 @@
             this.panel1.TabIndex = 5;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
+            // BTN_Generar
+            // 
+            this.BTN_Generar.Enabled = false;
+            this.BTN_Generar.Location = new System.Drawing.Point(33, 110);
+            this.BTN_Generar.Name = "BTN_Generar";
+            this.BTN_Generar.Size = new System.Drawing.Size(163, 23);
+            this.BTN_Generar.TabIndex = 6;
+            this.BTN_Generar.Text = "Generar programa";
+            this.BTN_Generar.UseVisualStyleBackColor = true;
+            this.BTN_Generar.Click += new System.EventHandler(this.BTN_Generar_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(703, 328);
+            this.Controls.Add(this.BTN_Generar);
             this.Controls.Add(this.Btn_subir);
             this.Controls.Add(this.lResultado);
             this.Controls.Add(this.label1);
@@ -113,6 +126,7 @@
         private System.Windows.Forms.Label lResultado;
         private System.Windows.Forms.Button Btn_subir;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Button BTN_Generar;
     }
 }
 

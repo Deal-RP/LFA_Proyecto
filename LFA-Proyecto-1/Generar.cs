@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace LFA_Proyecto_1
 {
@@ -29,24 +26,11 @@ namespace LFA_Proyecto_1
         }
 
         public static List<int> aprobacion = new List<int>();
+        public static string path;
+        public static List<string> T;
 
         public static void CrearPrograma()
         {
-            Logica.Sets = new List<string>();
-            Logica.listTerminales.Remove("#");
-            foreach (var n in Logica.listTerminales)
-            {
-                if (n[0] == '\'' && !Logica.Sets.Contains($"{(int)n[1]}|"))
-                {
-                    Logica.Sets.Add($"{Convert.ToString((int)n[1])}|");
-                }
-                else if(Logica.auxSets.ContainsKey(n))
-                {
-                    Logica.Sets.Add($"{n}|{Logica.auxSets[n]}");
-                    Logica.auxSets.Remove(n);
-                }
-            }
-
             if (File.Exists("Generico\\Generico\\Program.cs"))
             {
                 File.Delete("Generico\\Generico\\Program.cs");
@@ -67,35 +51,9 @@ namespace LFA_Proyecto_1
 
                 writer.WriteLine("\t\tstatic List<string> T = new List<string>();");
                 writer.WriteLine("\t\tstatic Dictionary<string, int> Actions = new Dictionary<string, int>();");
-                writer.WriteLine($"\t\tstatic int[,] matrizEstado = new int[{Logica.estadosTransportar.Count}, {Logica.Sets.Count}]");
-                writer.WriteLine("\t\t{");
-                var cont = 1;
-                foreach (var estado in Logica.estados.Values)
-                {
-                    var aux = "{";
-                    foreach (var key in estado)
-                    {
-                        var aux1 = "";
-                        foreach (var miniEstado in key.Value)
-                        {
-                            aux1 += $"{miniEstado},";
-                        }
-                        aux1 = aux1.TrimEnd(',');
-                        aux += Logica.estadosTransportar.IndexOf(aux1).ToString() + ",";
-                    }
-                    aux = aux.TrimEnd(',') + "}";
-                    if (cont == Logica.estados.Count)
-                    {
-                        writer.WriteLine($"\t\t\t{aux}");
-                    }
-                    else
-                    {
-                        writer.WriteLine($"\t\t\t{aux},");
-                    }
-                    cont++;
-                }
-                writer.WriteLine("\t\t};");
-                writer.WriteLine("\t\tstatic List<int> aprobacion = new List<int>();");
+                writer.WriteLine("\t\tstatic List<Tuple<string, int>> Tokens = new List<Tuple<string, int>>();");
+                writer.WriteLine("\t\tstatic string desplegar;");
+                writer.WriteLine("\t\tstatic int num = 0;");
 
                 writer.WriteLine("\t\tstatic void Main(string[] args)");
                 writer.WriteLine("\t\t{");
@@ -103,13 +61,15 @@ namespace LFA_Proyecto_1
                 writer.WriteLine("\t\t\tRellenarDatos();");
                 writer.WriteLine("\t\t\twhile (opc != 3)");
                 writer.WriteLine("\t\t\t{");
+                writer.WriteLine("\t\t\t\tvar empezar = true;");
                 writer.WriteLine("\t\t\t\tConsole.WriteLine(\"Menu\");");
                 writer.WriteLine("\t\t\t\tConsole.WriteLine(\"1.Ingresar Archivo de.txt\");");
                 writer.WriteLine("\t\t\t\tConsole.WriteLine(\"2.Ingresar cadena\");");
                 writer.WriteLine("\t\t\t\tConsole.WriteLine(\"3.Salir\");");
-                writer.WriteLine("\t\t\t\topc = Convert.ToInt32(Console.ReadLine());");
+                writer.WriteLine("\t\t\t\tint.TryParse(Console.ReadLine(), out opc);");
 
                 writer.WriteLine("\t\t\t\tvar txt = string.Empty;");
+                writer.WriteLine("\t\t\t\tdesplegar = string.Empty;");
 
                 writer.WriteLine("\t\t\t\tswitch (opc)");
                 writer.WriteLine("\t\t\t\t{");
@@ -124,86 +84,290 @@ namespace LFA_Proyecto_1
                 writer.WriteLine("\t\t\t\t\t\tConsole.WriteLine(\"Ingrese cadena a evaluar\");");
                 writer.WriteLine("\t\t\t\t\t\ttxt = Console.ReadLine();");
                 writer.WriteLine("\t\t\t\t\t\tbreak;");
+
+                writer.WriteLine("\t\t\t\t\tcase 3:");
+                writer.WriteLine("\t\t\t\t\t\tempezar = false;");
+                writer.WriteLine("\t\t\t\t\t\tbreak;");
+
+                writer.WriteLine("\t\t\t\t\tdefault:");
+                writer.WriteLine("\t\t\t\t\t\tempezar = false;");
+                writer.WriteLine("\t\t\t\t\t\tbreak;");
+
                 writer.WriteLine("\t\t\t\t}");
 
 
                 writer.WriteLine("\t\t\t\tvar correct = true;");
-                writer.WriteLine("\t\t\t\tvar aux = string.Empty;");
 
                 writer.WriteLine("\t\t\t\tvar Token = string.Empty;");
                 writer.WriteLine("\t\t\t\tvar estado = 0;");
 
+                writer.WriteLine("\t\t\t\tvar controlReservada = true;");
+
                 writer.WriteLine("\t\t\t\twhile (correct && txt.Length != 0)");
                 writer.WriteLine("\t\t\t\t{");
 
-                writer.WriteLine("\t\t\t\t\tvar controlReservada = true;");
 
+                writer.WriteLine("\t\t\t\t\tcontrolReservada = true;");
                 writer.WriteLine("\t\t\t\t\tvar cont = 0;");
 
-                
-                
-                writer.WriteLine("\t\t\t\t\tforeach (var action in Actions)");
-                writer.WriteLine("\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\ttxt = txt.TrimStart(new char[4] { '\\t', ' ', '\\r', '\\n' });");
 
-                writer.WriteLine("\t\t\t\t\t\tif (txt.Length >= action.Key.Length)");
+                #region CARGAR ESTADOS
+                var estados = new Dictionary<string, Dictionary<string, string>>();
+
+                foreach (var estado in Logica.estados)
+                {
+                    var auxkey = string.Empty;
+
+                    foreach (var key in estado.Key)
+                    {
+                        auxkey += $"{key},";
+                    }
+                    var miniDiccionario = new Dictionary<string, string>();
+                    foreach (var value in estado.Value)
+                    {
+                        var aux = string.Empty;
+                        foreach (var miniEstado in value.Value)
+                        {
+                            aux += $"{miniEstado},";
+                        }
+                        var auxDiccionario = value.Key[0] == '\'' ? ((int)value.Key[1]).ToString() : value.Key;
+                        miniDiccionario.Add(auxDiccionario, aux.TrimEnd(','));
+                    }
+                    estados.Add(auxkey.TrimEnd(','), miniDiccionario);
+                }
+
+                var auxValidacion = string.Empty;
+                var auxCorrecto = string.Empty;
+                for (int i = 0; i < estados.Count; i++)
+                {
+                    if (!aprobacion.Contains(i))
+                    {
+                        auxValidacion += $" || estado == {i.ToString()}";
+                    }
+                    else
+                    {
+                        auxCorrecto += $" || estado == {i.ToString()}";
+                    }
+                }
+                #endregion
+
+                writer.WriteLine($"\t\t\t\t\tif ({auxCorrecto.TrimStart(new char[2] { '|', ' ' })})");
+                writer.WriteLine("\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\t\tforeach (var action in Actions)");
                 writer.WriteLine("\t\t\t\t\t\t{");
 
-                writer.WriteLine("\t\t\t\t\t\t\tcont = 0;");
-                writer.WriteLine("\t\t\t\t\t\t\twhile (cont < action.Key.Length && action.Key[cont] == Convert.ToChar(txt[cont].ToString().ToUpper()))");
+                writer.WriteLine("\t\t\t\t\t\t\tif (txt.Length >= action.Key.Length)");
                 writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\tcont++;");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t\tif (cont == action.Key.Length)");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\tConsole.WriteLine(txt.Substring(0, cont) + \" = \" + action.Value.ToString());");
-                writer.WriteLine("\t\t\t\t\t\t\t\ttxt = txt.Substring(cont).TrimStart();");
-                writer.WriteLine("\t\t\t\t\t\t\t\tcontrolReservada = false;");
-                writer.WriteLine("\t\t\t\t\t\t\t\tbreak;");
 
+                writer.WriteLine("\t\t\t\t\t\t\t\tcont = 0;");
+                writer.WriteLine("\t\t\t\t\t\t\t\twhile (cont < action.Key.Length && action.Key[cont] == Convert.ToChar(txt[cont].ToString().ToUpper()))");
+                writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\tcont++;");
+                writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                writer.WriteLine("\t\t\t\t\t\t\t\tif (cont == action.Key.Length)");
+                writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\tif (desplegar != \"\")");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\t\tConsole.WriteLine(desplegar + \" = \" + num);");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\t\tdesplegar = \"\";");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\t}");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\tConsole.WriteLine(txt.Substring(0, cont) + \" = \" + action.Value.ToString());");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(cont);");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\testado = 0;");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\tcontrolReservada = false;");
+                writer.WriteLine("\t\t\t\t\t\t\t\t\tbreak;");
+
+                writer.WriteLine("\t\t\t\t\t\t\t\t}");
                 writer.WriteLine("\t\t\t\t\t\t\t}");
                 writer.WriteLine("\t\t\t\t\t\t}");
+
                 writer.WriteLine("\t\t\t\t\t}");
 
-                writer.WriteLine("\t\t\t\t\tif (controlReservada)");
+                writer.WriteLine("\t\t\t\t\tif (controlReservada && txt.Length > 0)");
                 writer.WriteLine("\t\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\t\tvar letra = (int)txt[0];");
 
-                writer.WriteLine("\t\t\t\t\t\tcont = 1;");
+                #region SWICTH
+                var numEstado = 0;
+                foreach (var estado in Logica.estadosTransportar)
+                {
+                    var partes = estado.Split(',').ToList();
+                    if (partes.Contains(Logica.Follows.Count.ToString()))
+                    {
+                        aprobacion.Add(numEstado);
+                    }
+                    numEstado++;
+                }
 
-                writer.WriteLine("\t\t\t\t\t\tvar pos = EvaluarLetra(txt[0]);");
-                writer.WriteLine("\t\t\t\t\t\tif (pos != -1)");
+                int[,] matrizEstado = new int[Logica.estadosTransportar.Count, T.Count];
+
+                var posy = 0;
+                foreach (var estado in estados)
+                {
+                    var posx = 0;
+                    foreach (var miniEstado in estado.Value)
+                    {
+                        matrizEstado[posy, posx] = Logica.estadosTransportar.IndexOf(miniEstado.Value);
+                        posx++;
+                    }
+                    posy++;
+                }
+                var cont = 0;
+                writer.WriteLine("\t\t\t\t\t\tswitch (estado)");
                 writer.WriteLine("\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\tif (matrizEstado[estado, pos] == -1)");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\tif (!aprobacion.Contains(estado))");
-                writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                for (int i = 0; i < Logica.estadosTransportar.Count; i++)
+                {
+                    var posX = 0;
+                    cont = 0;
+                    writer.WriteLine($"\t\t\t\t\t\t\tcase {i}:");
+                    if (i == 0)
+                    {
+                        writer.WriteLine("\t\t\t\t\t\t\t\tif (desplegar != \"\")");
+                        writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                        writer.WriteLine("\t\t\t\t\t\t\t\t\tConsole.WriteLine(desplegar + \" = \" + num);");
+                        writer.WriteLine("\t\t\t\t\t\t\t\t\tdesplegar = \"\";");
+                        writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                    }
+                    foreach (var validacion in T)
+                    {
+                        var info = validacion.Split('|');
+                        if (estados[Logica.estadosTransportar[i]][info[0]] != "")
+                        {
+                            if (info[1] == "")
+                            {
+                                if (cont != 0)
+                                {
+                                    writer.WriteLine("\t\t\t\t\t\t\t\telse");
+                                }
+                                writer.WriteLine($"\t\t\t\t\t\t\t\tif (letra == {info[0]})");
+                                writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                                writer.WriteLine($"\t\t\t\t\t\t\t\t\testado = {matrizEstado[i, posX]};");
+                                writer.WriteLine("\t\t\t\t\t\t\t\t\tdesplegar += txt[0];");
+                                writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(1);");
+                                if (i == 0)
+                                {
+                                    writer.WriteLine($"\t\t\t\t\t\t\t\t\tVerificarToken(\"{info[0]}\");");
+                                }
+                                writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                                cont++;
+                            }
+                            else
+                            {
+                                var aux = string.Empty;
+                                var conjunto = info[1].Split('+');
+                                foreach (var pares in conjunto)
+                                {
+                                    var partes = pares.Split('.');
+                                    if (partes.Length == 2)
+                                    {
+                                        if (Convert.ToInt32(partes[0]) < Convert.ToInt32(partes[1]))
+                                        {
+                                            if (cont != 0)
+                                            {
+                                                writer.WriteLine("\t\t\t\t\t\t\t\telse");
+                                            }
+                                            writer.WriteLine($"\t\t\t\t\t\t\t\tif (letra >= {Convert.ToInt32(partes[0]).ToString()} && letra <= {Convert.ToInt32(partes[1]).ToString()})");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                                            writer.WriteLine($"\t\t\t\t\t\t\t\t\testado = {matrizEstado[i, posX]};");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t\tdesplegar += txt[0];");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(1);");
+                                            if (i == 0)
+                                            {
+                                                writer.WriteLine($"\t\t\t\t\t\t\t\t\tVerificarToken(\"{info[0]}\");");
+                                            }
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                                            cont++;
+                                        }
+                                        else if (Convert.ToInt32(partes[0]) > Convert.ToInt32(partes[1]))
+                                        {
+                                            if (cont != 0)
+                                            {
+                                                writer.WriteLine("\t\t\t\t\t\t\t\telse");
+                                            }
+                                            writer.WriteLine($"\t\t\t\t\t\t\t\tif (letra >= {Convert.ToInt32(partes[0]).ToString()} || letra <= {Convert.ToInt32(partes[1]).ToString()})");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                                            writer.WriteLine($"\t\t\t\t\t\t\t\t\testado = {matrizEstado[i, posX]};");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t\tdesplegar += txt[0];");
+                                            if (i == 0)
+                                            {
+                                                writer.WriteLine($"\t\t\t\t\t\t\t\t\tVerificarToken(\"{info[0]}\");");
+                                            }
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(1);");
+                                            writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                                            cont++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (cont != 0)
+                                        {
+                                            writer.WriteLine("\t\t\t\t\t\t\t\telse");
+                                        }
+                                        writer.WriteLine($"\t\t\t\t\t\t\t\tif (letra == {Convert.ToInt32(partes[0]).ToString()})");
+                                        writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                                        writer.WriteLine($"\t\t\t\t\t\t\t\t\testado = {matrizEstado[i, posX]};");
+                                        writer.WriteLine("\t\t\t\t\t\t\t\t\tdesplegar += txt[0];");
+                                        writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(1);");
+                                        if (i == 0)
+                                        {
+                                            writer.WriteLine($"\t\t\t\t\t\t\t\t\tVerificarToken(\"{info[0]}\");");
+                                        }
+                                        writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                                        cont++;
+                                    }
+                                }
+                            }
+                        }
+                        posX++;
+                    }
 
-                writer.WriteLine("\t\t\t\t\t\t\t\t\tcorrect = false;");
+                    if (cont != 0)
+                    {
+                        writer.WriteLine("\t\t\t\t\t\t\t\telse");
+                        writer.WriteLine("\t\t\t\t\t\t\t\t{");
 
-                writer.WriteLine("\t\t\t\t\t\t\t\t\tConsole.WriteLine(\"Cadena ingresada invalida\");");
-                writer.WriteLine("\t\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t\t\telse");
-                writer.WriteLine("\t\t\t\t\t\t\t\t{");
+                        if (aprobacion.Contains(i))
+                        {
+                            writer.WriteLine("\t\t\t\t\t\t\t\t\testado = 0;");
+                            writer.WriteLine("\t\t\t\t\t\t\t\t\tcorrect = evaluar(letra);");
+                        }
+                        else
+                        {
+                            writer.WriteLine("\t\t\t\t\t\t\t\t\tConsole.WriteLine(\"Cadena invalida\");");
+                            writer.WriteLine("\t\t\t\t\t\t\t\t\tcorrect = false;");
+                        }
+                        writer.WriteLine("\t\t\t\t\t\t\t\t}");
+                    }
+                    else
+                    {
+                        writer.WriteLine("\t\t\t\t\t\t\t\testado = 0;");
+                        writer.WriteLine("\t\t\t\t\t\t\t\tcorrect = evaluar(letra);");
+                    }
+                    
 
-                writer.WriteLine("\t\t\t\t\t\t\t\t\testado = 0;");
-                writer.WriteLine("\t\t\t\t\t\t\t\t\ttxt = txt.Substring(1).TrimStart();");
-                writer.WriteLine("\t\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t\telse");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
+                    writer.WriteLine("\t\t\t\t\t\t\t\tbreak;");
+                }
 
-                writer.WriteLine("\t\t\t\t\t\t\t\testado = matrizEstado[estado, pos];");
-                writer.WriteLine("\t\t\t\t\t\t\t\ttxt = txt.Substring(1);");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
                 writer.WriteLine("\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\telse");
-                writer.WriteLine("\t\t\t\t\t\t{");
+                #endregion
 
-                writer.WriteLine("\t\t\t\t\t\t\tcorrect = false;");
-                //MODIFICAR EN CODIGO AL ERROR OBTENIDO
-                writer.WriteLine("\t\t\t\t\t\t\tConsole.WriteLine(\"ERROR CARACTER INVALIDO\");");
-                writer.WriteLine("\t\t\t\t\t\t}");
                 writer.WriteLine("\t\t\t\t\t}");
                 writer.WriteLine("\t\t\t\t}");
+                
+
+                writer.WriteLine($"\t\t\t\tif (controlReservada && empezar && correct && ({auxValidacion.TrimStart(new char[2] { '|' , ' '})}))");
+                writer.WriteLine("\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\tConsole.WriteLine(\"Cadena incorrecta\");");
+                writer.WriteLine("\t\t\t\t\tcorrect = false;");
+                writer.WriteLine("\t\t\t\t}");
+
+                writer.WriteLine("\t\t\t\tif (empezar && correct && desplegar != \"\")");
+                writer.WriteLine("\t\t\t\t{");
+                writer.WriteLine("\t\t\t\t\tConsole.WriteLine(desplegar + \" = \" + num);");
+                writer.WriteLine("\t\t\t\t}");
+
+
                 writer.WriteLine("\t\t\t\tConsole.WriteLine(\"Presione enter para continuar\");");
                 writer.WriteLine("\t\t\t\tConsole.ReadKey();");
                 writer.WriteLine("\t\t\t\tConsole.Clear();");
@@ -215,87 +379,158 @@ namespace LFA_Proyecto_1
                 writer.WriteLine("\t\tstatic void RellenarDatos()");
                 writer.WriteLine("\t\t{");
 
-                foreach (var set in Logica.Sets)
+                var auxList = new List<string>();
+
+                foreach (var item in Logica.actionsTransportar)
                 {
-                    writer.WriteLine($"\t\t\tT.Add(\"{set}\");");
+                    auxList.Add(item.Key);
                 }
-                foreach (var aprob in aprobacion)
+
+                auxList = auxList.OrderByDescending(s => s.Length).ToList();
+
+                foreach (var item in auxList)
                 {
-                    writer.WriteLine($"\t\t\taprobacion.Add({aprob});");
+                    writer.WriteLine($"\t\t\tActions.Add(\"{item}\", {Logica.actionsTransportar[item]});");
                 }
-                foreach (var act in Logica.actionsTransportar)
+
+                foreach (var item in Logica.tokensTransportar)
                 {
-                    writer.WriteLine($"\t\t\tActions.Add(\"{act.Key}\", {act.Value.ToString()});");
+                    writer.WriteLine($"\t\t\tTokens.Add(new Tuple<string, int>(\"{item.Item1}\", {item.Item2}));");
                 }
+
+                //foreach (var act in Logica.actionsTransportar)
+                //{
+                //    writer.WriteLine($"\t\t\tActions.Add(\"{act.Key}\", {act.Value.ToString()});");
+                //}
 
                 writer.WriteLine("\t\t}");
                 #endregion
 
-                writer.WriteLine("\t\tstatic int EvaluarLetra(int letra)");
+                #region CORRECTO
+                writer.WriteLine("\t\tstatic bool evaluar(int letra)");
                 writer.WriteLine("\t\t{");
-                writer.WriteLine("\t\t\tvar cont = 0;");
-
-                writer.WriteLine("\t\t\tforeach (var validacion in T)");
+                cont = 0;
+                foreach (var validacion in T)
+                {
+                    var info = validacion.Split('|');
+                    if (info[1] == "")
+                    {
+                        if (cont != 0)
+                        {
+                            writer.WriteLine("\t\t\telse");
+                        }
+                        writer.WriteLine($"\t\t\tif (letra == {info[0]})");
+                        writer.WriteLine("\t\t\t{ }");
+                        cont++;
+                    }
+                    else
+                    {
+                        var aux = string.Empty;
+                        var conjunto = info[1].Split('+');
+                        foreach (var pares in conjunto)
+                        {
+                            var partes = pares.Split('.');
+                            if (partes.Length == 2)
+                            {
+                                if (Convert.ToInt32(partes[0]) < Convert.ToInt32(partes[1]))
+                                {
+                                    if (cont != 0)
+                                    {
+                                        writer.WriteLine("\t\t\telse");
+                                    }
+                                    writer.WriteLine($"\t\t\tif (letra >= {Convert.ToInt32(partes[0]).ToString()} && letra <= {Convert.ToInt32(partes[1]).ToString()})");
+                                    writer.WriteLine("\t\t\t{ }");
+                                    cont++;
+                                }
+                                else if (Convert.ToInt32(partes[0]) > Convert.ToInt32(partes[1]))
+                                {
+                                    if (cont != 0)
+                                    {
+                                        writer.WriteLine("\t\t\telse");
+                                    }
+                                    writer.WriteLine($"\t\t\tif (letra >= {Convert.ToInt32(partes[0]).ToString()} || letra <= {Convert.ToInt32(partes[1]).ToString()})");
+                                    writer.WriteLine("\t\t\t{ }");
+                                    cont++;
+                                }
+                            }
+                            else
+                            {
+                                if (cont != 0)
+                                {
+                                    writer.WriteLine("\t\t\telse");
+                                }
+                                writer.WriteLine($"\t\t\tif (letra == {Convert.ToInt32(partes[0]).ToString()})");
+                                writer.WriteLine("\t\t\t{ }");
+                                cont++;
+                            }
+                        }
+                    }
+                }
+                writer.WriteLine("\t\t\telse");
                 writer.WriteLine("\t\t\t{");
-
-                writer.WriteLine("\t\t\t\tvar info = validacion.Split('|');");
-                writer.WriteLine("\t\t\t\tif (info[1] == \"\")");
-                writer.WriteLine("\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\tif (Convert.ToString(letra) == info[0])");
-                writer.WriteLine("\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\treturn cont;");
-                writer.WriteLine("\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t}");
-                writer.WriteLine("\t\t\t\telse");
-                writer.WriteLine("\t\t\t\t{");
-
-                writer.WriteLine("\t\t\t\t\tvar conjunto = info[1].Split('+');");
-                writer.WriteLine("\t\t\t\t\tforeach (var pares in conjunto)");
-                writer.WriteLine("\t\t\t\t\t{");
-
-                writer.WriteLine("\t\t\t\t\t\tvar partes = pares.Split('.');");
-                writer.WriteLine("\t\t\t\t\t\tif (partes.Length == 2)");
-                writer.WriteLine("\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\tif (Convert.ToInt32(partes[0]) < Convert.ToInt32(partes[1]) && letra >= Convert.ToInt32(partes[0]) && letra <= Convert.ToInt32(partes[1]))");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\treturn cont;");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t\telse if (Convert.ToInt32(partes[0]) > Convert.ToInt32(partes[1]) && (letra >= Convert.ToInt32(partes[0]) || letra <= Convert.ToInt32(partes[1])))");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\treturn cont;");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\telse");
-                writer.WriteLine("\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\tif (letra == Convert.ToInt32(partes[0]))");
-                writer.WriteLine("\t\t\t\t\t\t\t{");
-                writer.WriteLine("\t\t\t\t\t\t\t\treturn cont;");
-                writer.WriteLine("\t\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t\t}");
-                writer.WriteLine("\t\t\t\t}");
-
-                writer.WriteLine("\t\t\t\tcont++;");
+                writer.WriteLine("\t\t\t\tConsole.WriteLine(\"Caracter invalido\");");
+                writer.WriteLine("\t\t\t\treturn false;");
                 writer.WriteLine("\t\t\t}");
-                writer.WriteLine("\t\t\treturn -1;");
+                writer.WriteLine("\t\t\treturn true;");
+
                 writer.WriteLine("\t\t}");
+                #endregion
+                #region MOSTRARTOKEN
+                writer.WriteLine("\t\tstatic void VerificarToken(string t)");
+                writer.WriteLine("\t\t{");
+                writer.WriteLine("\t\t\tvar first = true;");
+                writer.WriteLine("\t\t\tforeach (var item in Tokens)");
+                writer.WriteLine("\t\t\t{");
+                writer.WriteLine("\t\t\t\tif (first && item.Item1 == t)");
+                writer.WriteLine("\t\t\t\t{");
+
+                writer.WriteLine("\t\t\t\t\tnum = item.Item2;");
+
+                writer.WriteLine("\t\t\t\t\tfirst = false;");
+                writer.WriteLine("\t\t\t\t}");
+                writer.WriteLine("\t\t\t}");
+                writer.WriteLine("\t\t}");
+                #endregion
 
                 writer.WriteLine("\t}");
                 writer.WriteLine("}");
+
+                
             }
 
+            Directory.CreateDirectory(Path.Combine(path, "Generico"));
+            CopyFolder("Generico", Path.Combine(path, "Generico"));
+            //#region EJECUTAR SCANNER
+            //BuildExe();
+            //try
+            //{
+            //    Process.Start($"{path}\\Generico\\Generico\\bin\\Debug\\netcoreapp3.1\\Generico.exe");
+            //}
+            //catch (Exception)
+            //{
+            //    BuildExe();
+            //}
+            //#endregion
+        }
 
-            #region EJECUTAR SCANNER
-            BuildExe();
-            try
+        static void CopyFolder(string sourceFolder, string destFolder)
+        {
+            if (!Directory.Exists(destFolder))
+                Directory.CreateDirectory(destFolder);
+            string[] files = Directory.GetFiles(sourceFolder);
+            foreach (string file in files)
             {
-                Process.Start("Escanner.exe");
+                string name = Path.GetFileName(file);
+                string dest = Path.Combine(destFolder, name);
+                File.Copy(file, dest, true);
             }
-            catch (Exception)
+            string[] folders = Directory.GetDirectories(sourceFolder);
+            foreach (string folder in folders)
             {
-                BuildExe();
+                string name = Path.GetFileName(folder);
+                string dest = Path.Combine(destFolder, name);
+                CopyFolder(folder, dest);
             }
-            #endregion
         }
     }
 }

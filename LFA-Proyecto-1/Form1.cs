@@ -81,12 +81,13 @@ namespace LFA_Proyecto_1
                         Logica.TablaFLN(Arbol_ER, TablaFLN);
                         Logica.TablaF(TablaF);
                         Logica.TablaEstados(Arbol_ER, TablaS);
+                        Logica.InicializarSets();
                         #endregion
-
-                        Generar.CrearPrograma();
+                        BTN_Generar.Enabled = true;
                     }
                     else
                     {
+                        BTN_Generar.Enabled = false;
                         lResultado.ForeColor = Color.Red;
                     }
                 }
@@ -119,6 +120,21 @@ namespace LFA_Proyecto_1
                     panel1.Controls.Add(lbl);
                 }
             }
+        }
+
+        private void BTN_Generar_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    Generar.path = fbd.SelectedPath;
+                }
+            }
+
+            Generar.CrearPrograma();
         }
     }
 }

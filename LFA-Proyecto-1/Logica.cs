@@ -16,6 +16,7 @@ namespace LFA_Proyecto_1
         public static Dictionary<string, string> auxSets;
         public static List<string> estadosTransportar;
         public static Dictionary<string, int> actionsTransportar;
+        public static List<Tuple<string, int>> tokensTransportar;
 
         #region METODOS DE APROBACION
         //Toma cada set recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
@@ -98,7 +99,7 @@ namespace LFA_Proyecto_1
 
                     if (linea.Length == 0)
                     {
-                        return($"ERROR LINEA: {contLinea} SE ESPERA UNA DEFINICION A CONTINUACION DEL +");
+                        return ($"ERROR LINEA: {contLinea} SE ESPERA UNA DEFINICION A CONTINUACION DEL +");
                     }
                 }
                 if (linea.Length > 7 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'' && linea[3] == '.' && linea[4] == '.' && linea[5] == '\'' && PerteneceASCII(linea[6]) && linea[7] == '\'')
@@ -123,7 +124,7 @@ namespace LFA_Proyecto_1
                     }
                     if (pos == 0)
                     {
-                        return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                        return ($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
                     }
                     else
                     {
@@ -136,8 +137,8 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
-                        
+                        return ($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+
                     }
 
                     if (linea.Length > 5 && linea[0] == '.' && linea[1] == '.' && linea[2] == 'C' && linea[3] == 'H' && linea[4] == 'R' && linea[5] == '(')
@@ -150,7 +151,7 @@ namespace LFA_Proyecto_1
                         }
                         if (pos == 0)
                         {
-                            return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                            return ($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
                         }
                         else
                         {
@@ -163,15 +164,15 @@ namespace LFA_Proyecto_1
                         }
                         else
                         {
-                            return($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
+                            return ($"ERROR LINEA: {contLinea} CHR IMCOMPLETO");
                         }
                     }
                     first = false;
                 }
                 else
                 {
-                    return($"ERROR LINEA: {contLinea} DEFINICION ERRONEA");
-                    
+                    return ($"ERROR LINEA: {contLinea} DEFINICION ERRONEA");
+
                 }
             }
             auxSets.Add(aux, set);
@@ -182,6 +183,8 @@ namespace LFA_Proyecto_1
         static string AprobarTokens(string linea)
         {
             var aux = string.Empty;
+            var inicioToken = true;
+            var num = 0;
             var TokensCompletados = false;
 
             var pos = 0;
@@ -192,12 +195,12 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERA LA PALABRA TOKEN");
+                return ($"ERROR LINEA: {contLinea} SE ESPERA LA PALABRA TOKEN");
             }
 
             if (linea.Length == 0)
             {
-                return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+                return ($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
             }
 
             if (linea[0] == '\t' || linea[0] == ' ')
@@ -206,7 +209,7 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} FALTA ESPACIO ENTRE TOKEN Y NUMERO");
+                return ($"ERROR LINEA: {contLinea} FALTA ESPACIO ENTRE TOKEN Y NUMERO");
             }
 
             pos = 0;
@@ -216,10 +219,11 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
             }
             else
             {
+                num = Convert.ToInt32(linea.Substring(0, pos));
                 linea = linea.Substring(pos).Trim(new char[2] { '\t', ' ' });
             }
 
@@ -229,7 +233,7 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
             }
 
             if (linea.Length == 0)
@@ -267,7 +271,7 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        return($"ERROR LINEA: {contLinea} SE ESPERABA RESERVADAS()");
+                        return ($"ERROR LINEA: {contLinea} SE ESPERABA RESERVADAS()");
                     }
                     if (linea.Length > 0 && linea[0] == '}')
                     {
@@ -275,16 +279,23 @@ namespace LFA_Proyecto_1
                     }
                     else
                     {
-                        return($"ERROR LINEA: {contLinea} SE ESPERABA {"}"}");
+                        return ($"ERROR LINEA: {contLinea} SE ESPERABA {"}"}");
                     }
                 }
                 else if (linea.Length > 0 && linea[0] == '|' && !first)
                 {
                     ER = $"{ER.TrimEnd('.')}{linea[0]}";
                     linea = linea.Substring(1).Trim(new char[2] { '\t', ' ' });
+                    inicioToken = true;
 
                     if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
                     {
+                        if (inicioToken)
+                        {
+                            tokensTransportar.Add(new Tuple<string, int>(Convert.ToString((int)linea[1]), num));
+                            inicioToken = false;
+                        }
+
                         ER += $"{linea.Substring(0, 3)}.";
                         linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
                     }
@@ -306,33 +317,43 @@ namespace LFA_Proyecto_1
                                 linea = linea.Trim(new char[2] { '\t', ' ' });
                                 pos++;
                             }
-                            else if (linea[0] == '(' || linea[0] ==  ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
+                            else if (linea[0] == '(' || linea[0] == ')' || linea[0] == '*' || linea[0] == '+' || linea[0] == '?' || linea[0] == '\'' || linea[0] == '|')
                             {
                                 TokensCompletados = true;
                                 linea = linea.Trim(new char[2] { '\t', ' ' });
                             }
                             else
                             {
-                                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+                                return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
                             }
                         }
                         if (Sets.Contains(aux))
                         {
+                            if (inicioToken)
+                            {
+                                tokensTransportar.Add(new Tuple<string, int>(aux, num));
+                                inicioToken = false;
+                            }
                             ER += $"{aux}.";
                         }
                         else
                         {
-                            return($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
+                            return ($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
                         }
                     }
                     else
                     {
-                        return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                        
+                        return ($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+
                     }
                 }
                 else if (linea.Length > 2 && linea[0] == '\'' && PerteneceASCII(linea[1]) && linea[2] == '\'')
                 {
+                    if (inicioToken)
+                    {
+                        tokensTransportar.Add(new Tuple<string, int>(Convert.ToString((int)linea[1]), num));
+                        inicioToken = false;
+                    }
                     ER += $"{linea.Substring(0, 3)}.";
                     linea = linea.Substring(3).Trim(new char[2] { '\t', ' ' });
                     first = false;
@@ -363,18 +384,23 @@ namespace LFA_Proyecto_1
                         }
                         else
                         {
-                            return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                            
+                            return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+
                         }
                     }
                     if (Sets.Contains(aux))
                     {
+                        if (inicioToken)
+                        {
+                            tokensTransportar.Add(new Tuple<string, int>(aux, num));
+                            inicioToken = false;
+                        }
                         ER += $"{aux}.";
                     }
                     else
                     {
-                        return($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
-                        
+                        return ($"ERROR LINEA: {contLinea} LA PALABRA NO SE ENCUENTRA EN SETS");
+
                     }
                 }
                 else if (linea.Length > 0 && linea[0] == '(')
@@ -387,8 +413,8 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
-                    return($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
-                    
+                    return ($"ERROR LINEA: {contLinea} TOKEN INCOMPLETO");
+
                 }
                 first = false;
             }
@@ -544,7 +570,7 @@ namespace LFA_Proyecto_1
                 return ($"ERROR LINEA: {contLinea} FALTA CERRAR PARENTESIS");
             }
             return "";
-        } 
+        }
 
         //Toma cada action recibido del txt en donde regresa false al momento de detectar un error o true si todo esta correcto
         static string AprobarActions(string linea)
@@ -557,8 +583,8 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
+
             }
             else
             {
@@ -568,8 +594,8 @@ namespace LFA_Proyecto_1
 
             if (linea.Length == 0)
             {
-                return($"ERROR LINEA: {contLinea} FALTA SIGNO '=' Y DEFINICION");
-                
+                return ($"ERROR LINEA: {contLinea} FALTA SIGNO '=' Y DEFINICION");
+
             }
 
             if (linea[0] == '=')
@@ -578,14 +604,14 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
+
             }
 
             if (linea.Length == 0)
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
+
             }
 
             if (linea.Length > 0 && linea[0] == '\'')
@@ -599,8 +625,8 @@ namespace LFA_Proyecto_1
                 }
                 if (pos == 0)
                 {
-                    return($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
-                    
+                    return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA LETRA MAYUSCULA");
+
                 }
                 else
                 {
@@ -616,14 +642,14 @@ namespace LFA_Proyecto_1
                 }
                 else
                 {
-                    return($"ERROR LINEA: {contLinea} SE ESPERABA '");
-                    
+                    return ($"ERROR LINEA: {contLinea} SE ESPERABA '");
+
                 }
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA '");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA '");
+
             }
 
             return "Correcto";
@@ -638,14 +664,14 @@ namespace LFA_Proyecto_1
             }
             else
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN '='");
+
             }
 
             if (linea.Length == 0)
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UNA DEFINICION");
+
             }
 
             var pos = 0;
@@ -655,8 +681,8 @@ namespace LFA_Proyecto_1
             }
             if (pos == 0)
             {
-                return($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
-                
+                return ($"ERROR LINEA: {contLinea} SE ESPERABA UN NUMERO");
+
             }
             else
             {
@@ -664,8 +690,8 @@ namespace LFA_Proyecto_1
             }
             if (linea.Length != 0)
             {
-                return($"ERROR LINEA: {contLinea} CARACTER INGRESADO NO ES DIGITO");
-                
+                return ($"ERROR LINEA: {contLinea} CARACTER INGRESADO NO ES DIGITO");
+
             }
 
             return "Correcto";
@@ -697,7 +723,7 @@ namespace LFA_Proyecto_1
                 if (PerteneceLetra(ER[pos]))
                 {
                     Token += ER[pos];
-                    if (Sets.Contains(Token) && ! Terminales.Contains(Token))
+                    if (Sets.Contains(Token) && !Terminales.Contains(Token))
                     {
                         Terminales.Add(Token);
                     }
@@ -811,7 +837,7 @@ namespace LFA_Proyecto_1
                 raiz.colorear(grafo, fuente, relleno, rellenoFuente, lapiz);
                 Colorear(raiz.HijoDerecho, grafo, fuente, relleno, rellenoFuente, lapiz, encuentro);
             }
-            
+
         }
 
         public static int cont;
@@ -886,7 +912,7 @@ namespace LFA_Proyecto_1
                     }
                     trans.Sort();
                     dic.Add(Terminales[i], trans);
-                }   
+                }
 
                 estados.Add(estadoActual, dic);
 
@@ -973,6 +999,24 @@ namespace LFA_Proyecto_1
                 cont++;
             }
         }
+
+        public static void InicializarSets()
+        {
+            Generar.T = new List<string>();
+            listTerminales.Remove("#");
+            foreach (var n in listTerminales)
+            {
+                if (n[0] == '\'' && !Generar.T.Contains($"{(int)n[1]}|"))
+                {
+                    Generar.T.Add($"{Convert.ToString((int)n[1])}|");
+                }
+                else if (Logica.auxSets.ContainsKey(n))
+                {
+                    Generar.T.Add($"{n}|{Logica.auxSets[n]}");
+                    auxSets.Remove(n);
+                }
+            }
+        }
         #endregion
 
         #region VALIDACIONES DE CARACTERES
@@ -1018,6 +1062,7 @@ namespace LFA_Proyecto_1
             auxSets = new Dictionary<string, string>();
             estadosTransportar = new List<string>();
             actionsTransportar = new Dictionary<string, int>();
+            tokensTransportar = new List<Tuple<string, int>>();
 
             var Correcto = true;
             try
