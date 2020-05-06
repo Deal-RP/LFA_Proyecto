@@ -152,7 +152,7 @@ namespace LFA_Proyecto_1
                 }
                 #endregion
 
-                writer.WriteLine($"\t\t\t\t\tif ({auxCorrecto.TrimStart(new char[2] { '|', ' ' })})");
+                writer.WriteLine($"\t\t\t\t\tif (estado == 0 || {auxCorrecto.TrimStart(new char[2] { '|', ' ' })})");
                 writer.WriteLine("\t\t\t\t\t{");
                 writer.WriteLine("\t\t\t\t\t\tforeach (var action in Actions)");
                 writer.WriteLine("\t\t\t\t\t\t{");
